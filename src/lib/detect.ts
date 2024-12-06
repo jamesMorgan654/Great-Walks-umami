@@ -72,32 +72,32 @@ export async function getLocation(ip: string, req: NextApiRequestCollect) {
   if (await isLocalhost(ip)) {
     return;
   }
-
-  // Cloudflare headers
+  let country;
+  // // Cloudflare headers
   if (req.headers['cf-ipcountry']) {
-    const country = safeDecodeURIComponent(req.headers['cf-ipcountry']);
-    const subdivision1 = safeDecodeURIComponent(req.headers['cf-region-code']);
-    const city = safeDecodeURIComponent(req.headers['cf-ipcity']);
+    country = safeDecodeURIComponent(req.headers['cf-ipcountry']);
+    //   const subdivision1 = safeDecodeURIComponent(req.headers['cf-region-code']);
+    //   const city = safeDecodeURIComponent(req.headers['cf-ipcity']);
 
-    return {
-      country,
-      subdivision1: getRegionCode(country, subdivision1),
-      city,
-    };
+    //   return {
+    //     country,
+    //     subdivision1: getRegionCode(country, subdivision1),
+    //     city,
+    //   };
   }
 
-  // Vercel headers
-  if (req.headers['x-vercel-ip-country']) {
-    const country = safeDecodeURIComponent(req.headers['x-vercel-ip-country']);
-    const subdivision1 = safeDecodeURIComponent(req.headers['x-vercel-ip-country-region']);
-    const city = safeDecodeURIComponent(req.headers['x-vercel-ip-city']);
+  // // Vercel headers
+  // if (req.headers['x-vercel-ip-country']) {
+  //   const country = safeDecodeURIComponent(req.headers['x-vercel-ip-country']);
+  //   const subdivision1 = safeDecodeURIComponent(req.headers['x-vercel-ip-country-region']);
+  //   const city = safeDecodeURIComponent(req.headers['x-vercel-ip-city']);
 
-    return {
-      country,
-      subdivision1: getRegionCode(country, subdivision1),
-      city,
-    };
-  }
+  //   return {
+  //     country,
+  //     subdivision1: getRegionCode(country, subdivision1),
+  //     city,
+  //   };
+  // }
 
   // Database lookup
   if (!lookup) {
@@ -109,7 +109,10 @@ export async function getLocation(ip: string, req: NextApiRequestCollect) {
   const result = lookup.get(ip);
 
   if (result) {
-    const country = result.country?.iso_code ?? result?.registered_country?.iso_code;
+    // const country = result.country?.iso_code ?? result?.registered_country?.iso_code;
+    if (!country) {
+      country = result.country?.iso_code ?? result?.registered_country?.iso_code;
+    }
     const subdivision1 = result.subdivisions?.[0]?.iso_code;
     const subdivision2 = result.subdivisions?.[1]?.names?.en;
     const city = result.city?.names?.en;
