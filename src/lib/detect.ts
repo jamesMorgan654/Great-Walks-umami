@@ -76,28 +76,28 @@ export async function getLocation(ip: string, req: NextApiRequestCollect) {
   // // Cloudflare headers
   if (req.headers['cf-ipcountry']) {
     country = safeDecodeURIComponent(req.headers['cf-ipcountry']);
-    //   const subdivision1 = safeDecodeURIComponent(req.headers['cf-region-code']);
-    //   const city = safeDecodeURIComponent(req.headers['cf-ipcity']);
+    const subdivision1 = safeDecodeURIComponent(req.headers['cf-region-code']);
+    const city = safeDecodeURIComponent(req.headers['cf-ipcity']);
 
-    //   return {
-    //     country,
-    //     subdivision1: getRegionCode(country, subdivision1),
-    //     city,
-    //   };
+    return {
+      country,
+      subdivision1: getRegionCode(country, subdivision1),
+      city,
+    };
   }
 
   // // Vercel headers
-  // if (req.headers['x-vercel-ip-country']) {
-  //   const country = safeDecodeURIComponent(req.headers['x-vercel-ip-country']);
-  //   const subdivision1 = safeDecodeURIComponent(req.headers['x-vercel-ip-country-region']);
-  //   const city = safeDecodeURIComponent(req.headers['x-vercel-ip-city']);
+  if (req.headers['x-vercel-ip-country']) {
+    country = safeDecodeURIComponent(req.headers['x-vercel-ip-country']);
+    const subdivision1 = safeDecodeURIComponent(req.headers['x-vercel-ip-country-region']);
+    const city = safeDecodeURIComponent(req.headers['x-vercel-ip-city']);
 
-  //   return {
-  //     country,
-  //     subdivision1: getRegionCode(country, subdivision1),
-  //     city,
-  //   };
-  // }
+    return {
+      country,
+      subdivision1: getRegionCode(country, subdivision1),
+      city,
+    };
+  }
 
   // Database lookup
   if (!lookup) {
