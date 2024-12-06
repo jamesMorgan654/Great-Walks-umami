@@ -1,7 +1,7 @@
 import { GridTable, GridColumn, Icon } from 'react-basics';
 import { useMessages, useTeamUrl, useTimezone } from 'components/hooks';
 import Empty from 'components/common/Empty';
-import Avatar from 'components/common/Avatar';
+// import Avatar from 'components/common/Avatar';
 import Link from 'next/link';
 import Icons from 'components/icons';
 
@@ -16,10 +16,11 @@ export function EventsTable({ data = [] }) {
 
   return (
     <GridTable data={data}>
-      <GridColumn name="session" label={formatMessage(labels.session)} width={'100px'}>
+      <GridColumn name="session_id" label={formatMessage(labels.session_id)} width={'100px'}>
         {row => (
           <Link href={renderTeamUrl(`/websites/${row.websiteId}/sessions/${row.sessionId}`)}>
-            <Avatar seed={row.sessionId} size={64} />
+            {row.sessionId}
+            {/* <Avatar seed={row.sessionId} size={64} /> */}
           </Link>
         )}
       </GridColumn>

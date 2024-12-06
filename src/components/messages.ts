@@ -130,6 +130,7 @@ export const labels = defineMessages({
   selectDate: { id: 'label.select-date', defaultMessage: 'Select date' },
   all: { id: 'label.all', defaultMessage: 'All' },
   session: { id: 'label.session', defaultMessage: 'Session' },
+  session_id: { id: 'label.session_id', defaultMessage: 'Session Id' },
   sessions: { id: 'label.sessions', defaultMessage: 'Sessions' },
   pageNotFound: { id: 'message.page-not-found', defaultMessage: 'Page not found' },
   activity: { id: 'label.activity', defaultMessage: 'Activity' },
