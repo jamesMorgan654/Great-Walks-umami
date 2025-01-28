@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const labels = defineMessages({
+  conversions: { id: 'label.conversions', defaultMessage: 'Conversions' },
   ok: { id: 'label.ok', defaultMessage: 'OK' },
   unknown: { id: 'label.unknown', defaultMessage: 'Unknown' },
   required: { id: 'label.required', defaultMessage: 'Required' },

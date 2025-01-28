@@ -33,7 +33,7 @@ export function WebsiteMetricsBar({
   );
   const isAllTime = dateRange.value === 'all';
 
-  const { pageviews, visitors, visits, bounces, totaltime } = data || {};
+  const { pageviews, visitors, visits, bounces, totaltime, conversions } = data || {};
 
   const metrics = data
     ? [
@@ -53,6 +53,14 @@ export function WebsiteMetricsBar({
           ...visitors,
           label: formatMessage(labels.visitors),
           change: visitors.value - visitors.prev,
+          formatValue: formatLongNumber,
+        },
+        // TODO: Create query in getWebsiteStats.ts
+        {
+          label: formatMessage(labels.conversions),
+          value: conversions.value,
+          prev: conversions.prev,
+          change: conversions.value - conversions.prev,
           formatValue: formatLongNumber,
         },
         {

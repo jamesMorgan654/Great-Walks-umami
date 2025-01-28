@@ -1,6 +1,6 @@
 .bar {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(100px, max-content));
   gap: 20px;
   width: 100%;
   position: relative;

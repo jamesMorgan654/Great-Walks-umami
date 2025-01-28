@@ -5,10 +5,15 @@ import prisma from 'lib/prisma';
 import { QueryFilters } from 'lib/types';
 import { EVENT_COLUMNS } from 'lib/constants';
 
-export async function getWebsiteStats(
-  ...args: [websiteId: string, filters: QueryFilters]
-): Promise<
-  { pageviews: number; visitors: number; visits: number; bounces: number; totaltime: number }[]
+export async function getWebsiteStats(...args: [websiteId: string, filters: QueryFilters]): Promise<
+  {
+    pageviews: number;
+    visitors: number;
+    visits: number;
+    bounces: number;
+    totaltime: number;
+    conversions: number;
+  }[]
 > {
   return runQuery({
     [PRISMA]: () => relationalQuery(...args),
@@ -20,40 +25,64 @@ async function relationalQuery(
   websiteId: string,
   filters: QueryFilters,
 ): Promise<
-  { pageviews: number; visitors: number; visits: number; bounces: number; totaltime: number }[]
+  {
+    pageviews: number;
+    visitors: number;
+    visits: number;
+    bounces: number;
+    totaltime: number;
+    conversions: number;
+  }[]
 > {
   const { getTimestampDiffSQL, parseFilters, rawQuery } = prisma;
   const { filterQuery, joinSession, params } = await parseFilters(websiteId, {
     ...filters,
     eventType: EVENT_TYPE.pageView,
   });
-
-  return rawQuery(
-    `
-    select
-      sum(t.c) as "pageviews",
-      count(distinct t.session_id) as "visitors",
-      count(distinct t.visit_id) as "visits",
-      sum(case when t.c = 1 then 1 else 0 end) as "bounces",
-      sum(${getTimestampDiffSQL('t.min_time', 't.max_time')}) as "totaltime"
-    from (
-      select
-        website_event.session_id,
-        website_event.visit_id,
-        count(*) as "c",
-        min(website_event.created_at) as "min_time",
-        max(website_event.created_at) as "max_time"
-      from website_event
+  const compiledRawQuery = `
+    -- Step 1: Filter Data
+    WITH filtered_events AS (
+      SELECT website_event.* FROM website_event
         ${joinSession}
-      where website_event.website_id = {{websiteId::uuid}}
-        and website_event.created_at between {{startDate}} and {{endDate}}
-        and event_type = {{eventType}}
+      WHERE website_event.website_id = {{websiteId::uuid}}
+        AND website_event.created_at BETWEEN {{startDate}} AND {{endDate}}
         ${filterQuery}
-      group by 1, 2
-    ) as t
-    `,
-    params,
-  );
+    ),
+    -- Step 2: Calculate main metrics
+    metrics AS (
+      SELECT
+        filtered_events.session_id AS "session_id",
+        filtered_events.visit_id AS "visit_id",
+        COUNT(*) AS "c",
+        MIN(filtered_events.created_at) AS "min_time",
+        MAX(filtered_events.created_at) AS "max_time"
+      FROM
+        filtered_events
+      WHERE
+        filtered_events.event_type = {{eventType}} -- Filtering to pageview events.
+      GROUP BY filtered_events.session_id, filtered_events.visit_id
+    ),
+    -- Step 3: Calculate conversions
+    conversions AS (
+      SELECT
+        COUNT(DISTINCT filtered_events.event_id) AS "conversions"
+      FROM
+        filtered_events
+      WHERE
+        filtered_events.event_name = 'alert_submit'
+    )
+    -- Step 4: Bring everything together
+    SELECT
+      SUM(metrics.c) AS "pageviews",
+      COUNT(DISTINCT metrics.session_id) AS "visitors",
+      COUNT(DISTINCT metrics.visit_id) AS "visits",
+      SUM(CASE WHEN metrics.c = 1 THEN 1 ELSE 0 END) AS "bounces",
+      SUM(${getTimestampDiffSQL('metrics.min_time', 'metrics.max_time')}) AS "totaltime",
+      (SELECT conversions.conversions FROM conversions) AS "conversions"
+    FROM
+      metrics
+    `;
+  return rawQuery(compiledRawQuery, params);
 }
 
 async function clickhouseQuery(
